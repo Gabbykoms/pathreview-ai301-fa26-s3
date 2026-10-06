@@ -76,6 +76,15 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -e ".[dev]"
+      - name: Validate migrations
+        # Applies every migration to its own empty database and checks the
+        # result against the SQLAlchemy models, leaving pathreview_test alone.
+        run: |
+          createdb -h localhost -U pathreview pathreview_migcheck
+          scripts/validate_migrations.sh
+        env:
+          PGPASSWORD: pathreview
+          DATABASE_URL: postgresql+asyncpg://pathreview:pathreview@localhost:5432/pathreview_migcheck
       - name: Run integration tests
         # tests/integration/ is currently empty by design -- the integration
         # suite is one of the things students contribute. pytest exits 5 on
